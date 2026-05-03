@@ -1,0 +1,254 @@
+{
+  "name": "Projeto_Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "74b0f252-274d-4329-9a29-579bb67441b8",
+      "name": "Telegram Trigger",
+      "webhookId": "0b863dfe-7db2-4b3f-bd18-46d2a0fd3aaa",
+      "credentials": {
+        "telegramApi": {
+          "id": "SwyhArsSIDBB0Dnr",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0435213a-3f44-4ce3-a487-7fd6d61afa9a",
+              "name": "=queue",
+              "value": "={{$json[\"message\"][\"text\"]}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "a74155f0-c718-4c52-b72c-5f8c8fe30184",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json.queue;\n\nlet queue = input.trim();\n\nqueue = queue\n  .normalize(\"NFD\")\n  .replace(/[\\u0300-\\u036f]/g, \"\")\n  .toLowerCase();\n\nreturn [\n  {\n    queue\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "5a6070f0-6d8c-494e-800c-354c13555dd7",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "https://api.openweathermap.org/data/2.5/weather",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{$json.queue}}"
+            },
+            {
+              "name": "units",
+              "value": "metric"
+            },
+            {
+              "name": "lang",
+              "value": "pt_br"
+            },
+            {
+              "name": "appid",
+              "value": "=5894baafc7d575c9e393a4dbe975c22b"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "08c2abc5-18bd-432a-95bc-809c3cd34ed7",
+      "name": "HTTP Request",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "be398d33-c9f1-448e-8965-2c044fa66d20",
+              "leftValue": "={{$json[\"cod\"]}}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        0
+      ],
+      "id": "d92c1a97-a152-450f-9128-3978c78728b7",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{$node[\"Telegram Trigger\"].json[\"message\"][\"chat\"][\"id\"]}}",
+        "text": "❌ Cidade não encontrada. Use o formato Cidade (ex.: São Paulo).",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        -144
+      ],
+      "id": "039413c2-9ea5-4d8a-98cd-b58502f4cb10",
+      "name": "Send a text message ERRO",
+      "webhookId": "156a04b8-adf6-4ece-a24d-a8d001a47ca4",
+      "credentials": {
+        "telegramApi": {
+          "id": "SwyhArsSIDBB0Dnr",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{$node[\"Telegram Trigger\"].json[\"message\"][\"chat\"][\"id\"]}}\n\n",
+        "text": "=🌤️ A temperatura em {{$json[\"name\"]}} é de {{$json[\"main\"][\"temp\"]}}°C.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        128
+      ],
+      "id": "c04f9f7f-8fea-47eb-be27-6b977c7a73dd",
+      "name": "Send a text message SUCESSO",
+      "webhookId": "4381873c-f6b0-4bfe-a53c-6ab66857095c",
+      "credentials": {
+        "telegramApi": {
+          "id": "SwyhArsSIDBB0Dnr",
+          "name": "Telegram account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message ERRO",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message SUCESSO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "fc0a4c26-fee3-4f5a-ac70-5c41ab324a89",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6395bb83b9ad360d7e12268a64839a13a3d1375de51fa45a05f73153495992c7"
+  },
+  "id": "SmrJhOMV7x2_4w9LQqTeM",
+  "tags": []
+}
