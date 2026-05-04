@@ -132,7 +132,7 @@
     {
       "parameters": {
         "chatId": "={{$node[\"Telegram Trigger\"].json[\"message\"][\"chat\"][\"id\"]}}",
-        "text": "❌ Cidade não encontrada. Use o formato Cidade (ex.: São Paulo).",
+        "text": "❌ Cidade não encontrada. Use o formato Cidade,UF,BR (ex.: São Paulo,SP,BR).",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
@@ -154,7 +154,7 @@
     {
       "parameters": {
         "chatId": "={{$node[\"Telegram Trigger\"].json[\"message\"][\"chat\"][\"id\"]}}\n\n",
-        "text": "=🌤️ A temperatura em {{$json[\"name\"]}} é de {{$json[\"main\"][\"temp\"]}}°C.",
+        "text": "=🌤️ A temperatura em {{$json["name"]}} é de {{Math.round($json["main"]["temp"])}}°C.",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
